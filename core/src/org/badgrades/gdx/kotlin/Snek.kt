@@ -14,13 +14,13 @@ class SnekGame : ApplicationAdapter() {
     val random = Random()
 
     /** The width of the map in blocks */
-    val MAP_WIDTH = 20
+    val MAP_WIDTH = 20f
 
     /** The height of the map in blocks */
-    val MAP_HEIGHT = 20
+    val MAP_HEIGHT = 20f
 
     /** The size of a single block in pixels */
-    val BLOCK_SIZE = 16
+    val BLOCK_SIZE = 16f
 
     val camera = OrthographicCamera()
 
@@ -29,52 +29,68 @@ class SnekGame : ApplicationAdapter() {
 
     lateinit var shapeRenderer: ShapeRenderer
 
+    /** How much time to wait between movements for snek, 1 = 1 second */
+    var game_speed = 1
+
     override fun create() {
         camera.setToOrtho(false,
-                (MAP_HEIGHT * BLOCK_SIZE).toFloat(),
-                (MAP_WIDTH * BLOCK_SIZE).toFloat())
+                MAP_HEIGHT * BLOCK_SIZE,
+                MAP_WIDTH * BLOCK_SIZE)
         shapeRenderer = ShapeRenderer()
     }
 
+    var deltaAggregate = 0f
     override fun render() {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        // Logic
-        update()
-
         // Camera and Shape renderer
         camera.update()
         shapeRenderer.projectionMatrix = camera.combined
 
+        // Clear
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // Input
+        if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) snek.direction = Direction.DOWN
+        if(Gdx.input.isKeyPressed(Input.Keys.UP)) snek.direction = Direction.UP
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) snek.direction = Direction.LEFT
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) snek.direction = Direction.RIGHT
+
+        // Game `tick`
+        deltaAggregate += Gdx.graphics.deltaTime
+        if(deltaAggregate >= game_speed) {
+            snek.move()
+            deltaAggregate = 0f
+        }
+
+        // Drawring
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
         // Food
         shapeRenderer.setColor(0f, 1f, 0f, 1f)
         for(food in foods) {
             shapeRenderer.rect(
-                    food.x.toFloat(),
-                    food.y.toFloat(),
-                    BLOCK_SIZE.toFloat(),
-                    BLOCK_SIZE.toFloat())
+                    food.x * BLOCK_SIZE,
+                    food.y * BLOCK_SIZE,
+                    BLOCK_SIZE,
+                    BLOCK_SIZE)
         }
 
         // Draw head of snek
         shapeRenderer.setColor(1f, 0f, 0f, 1f)
         shapeRenderer.rect(
-                snek.x.toFloat(),
-                snek.y.toFloat(),
-                BLOCK_SIZE.toFloat(),
-                BLOCK_SIZE.toFloat())
+                snek.x * BLOCK_SIZE,
+                snek.y * BLOCK_SIZE,
+                BLOCK_SIZE,
+                BLOCK_SIZE)
 
         // Draw body of snek
         shapeRenderer.setColor(0f, 0f, 1f, 1f)
         for(cell in snek.cells) {
             shapeRenderer.rect(
-                    cell.x.toFloat(),
-                    cell.y.toFloat(),
-                    BLOCK_SIZE.toFloat(),
-                    BLOCK_SIZE.toFloat())
+                    cell.x.toFloat() * BLOCK_SIZE,
+                    cell.y.toFloat() * BLOCK_SIZE,
+                    BLOCK_SIZE,
+                    BLOCK_SIZE)
         }
 
         shapeRenderer.end()
@@ -83,18 +99,8 @@ class SnekGame : ApplicationAdapter() {
     override fun dispose() {
     }
 
-    fun update() {
-        if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) snek.direction = Direction.DOWN
-        if(Gdx.input.isKeyPressed(Input.Keys.UP)) snek.direction = Direction.UP
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) snek.direction = Direction.LEFT
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) snek.direction = Direction.RIGHT
-
-        snek.move()
-
-        // TODO check for collisions: food, wall, self
-    }
-
-    fun createRandomFood(): Food = Food(random.nextInt(MAP_WIDTH), random.nextInt(MAP_HEIGHT))
+    fun createRandomFood(): Food = Food(random.nextFloat() * MAP_WIDTH + 1 ,
+            random.nextFloat() * MAP_HEIGHT + 1)
 }
 
 /**
@@ -104,8 +110,8 @@ class SnekGame : ApplicationAdapter() {
  * <_____________________________/   \
  *
  */
-class Snek(var x: Int, var y: Int) {
-    val cells = mutableListOf(Point(x, y))
+class Snek(var x: Float, var y: Float) {
+    val cells = mutableListOf(Point(x.toInt(), y.toInt()))
     var direction = Direction.RIGHT
 
     fun increaseLength(length: Int) = {
@@ -117,8 +123,8 @@ class Snek(var x: Int, var y: Int) {
     fun move() {
 
         // Store the original position of the head
-        val oldHeadX = x
-        val oldHeadY = y
+        val oldHeadX = x.toInt()
+        val oldHeadY = y.toInt()
 
         // Move the head of the snek
         when(direction) {
@@ -151,7 +157,7 @@ class Snek(var x: Int, var y: Int) {
  *      /'---\___/~~~~~~~~~~~~
  *     ~     ~~
  */
-data class Food(val x: Int, val y: Int)
+data class Food(val x: Float, val y: Float)
 
 /**
  *                  Map map map map
