@@ -11,6 +11,7 @@ import java.util.*
 
 class SnekGame : ApplicationAdapter() {
 
+    /** A0290234l;kjasdfm,.nclkjadf */
     val random = Random()
 
     /** The width of the map in blocks */
@@ -22,15 +23,20 @@ class SnekGame : ApplicationAdapter() {
     /** The size of a single block in pixels */
     val BLOCK_SIZE = 16f
 
-    val camera = OrthographicCamera()
-
-    val foods: MutableCollection<Food> = mutableListOf(createRandomFood())
+    /** Obviously snek */
     val snek: Snek = Snek(MAP_WIDTH / 2, MAP_HEIGHT / 2)
 
+    /** This is a comment just so that every field is commented */
+    val camera = OrthographicCamera()
+
+    /** This draws shapes, renders them even */
     lateinit var shapeRenderer: ShapeRenderer
 
     /** How much time to wait between movements for snek, 1 = 1 second */
-    var game_speed = 1
+    var game_speed = 0.15
+
+    /** The current active food */
+    var food = createRandomFood()
 
     override fun create() {
         camera.setToOrtho(false,
@@ -59,6 +65,7 @@ class SnekGame : ApplicationAdapter() {
         deltaAggregate += Gdx.graphics.deltaTime
         if(deltaAggregate >= game_speed) {
             snek.move()
+            checkCollisions()
             deltaAggregate = 0f
         }
 
@@ -67,13 +74,12 @@ class SnekGame : ApplicationAdapter() {
 
         // Food
         shapeRenderer.setColor(0f, 1f, 0f, 1f)
-        for(food in foods) {
-            shapeRenderer.rect(
-                    food.x * BLOCK_SIZE,
-                    food.y * BLOCK_SIZE,
-                    BLOCK_SIZE,
-                    BLOCK_SIZE)
-        }
+        shapeRenderer.rect(
+                food.x * BLOCK_SIZE,
+                food.y * BLOCK_SIZE,
+                BLOCK_SIZE,
+                BLOCK_SIZE)
+
 
         // Draw head of snek
         shapeRenderer.setColor(1f, 0f, 0f, 1f)
@@ -99,8 +105,30 @@ class SnekGame : ApplicationAdapter() {
     override fun dispose() {
     }
 
-    fun createRandomFood(): Food = Food(random.nextFloat() * MAP_WIDTH + 1 ,
-            random.nextFloat() * MAP_HEIGHT + 1)
+    fun createRandomFood(): Food = Food(
+            random.nextInt(MAP_WIDTH.toInt()).toFloat(),
+            random.nextInt(MAP_HEIGHT.toInt()).toFloat())
+
+    fun checkCollisions() {
+        // Walls
+        if(snek.x < 0 || snek.x > MAP_WIDTH || snek.y < 0 || snek.y > MAP_HEIGHT) {
+            println("GAME OVER")
+            System.exit(0)
+        }
+
+        // Food
+        if(food.x == snek.x && food.y == snek.y) {
+            println("FOOD CONSUMED")
+            snek.increaseLength(2)
+            food = createRandomFood()
+        }
+
+        // Self
+        if(snek.cells.filter { it.x.toFloat() == snek.x && it.y.toFloat() == snek.y }.size > 0) {
+            println("COLLIDED WITH SELF")
+            System.exit(0)
+        }
+    }
 }
 
 /**
@@ -115,9 +143,13 @@ class Snek(var x: Float, var y: Float) {
     var direction = Direction.RIGHT
 
     fun increaseLength(length: Int) = {
+        println("Increasing length to " + length)
         val butt = cells.last()
-        for(i in 1.rangeTo(length))
+        println(butt)
+        for(i in 1..length) {
+            println(i)
             cells.add(Point(butt.x, butt.y))
+        }
     }
 
     fun move() {
