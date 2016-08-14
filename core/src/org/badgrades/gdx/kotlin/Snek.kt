@@ -141,11 +141,11 @@ class SnekGame : ApplicationAdapter() {
 class Snek(var x: Float, var y: Float) {
     val cells = mutableListOf(Point(x.toInt(), y.toInt()))
     var direction = Direction.RIGHT
-
-    fun increaseLength(length: Int) = {
-        println("Increasing length to " + length)
+    init {
+        increaseLength(5)
+    }
+    fun increaseLength(length: Int) {
         val butt = cells.last()
-        println(butt)
         for(i in 1..length) {
             println(i)
             cells.add(Point(butt.x, butt.y))
@@ -155,8 +155,7 @@ class Snek(var x: Float, var y: Float) {
     fun move() {
 
         // Store the original position of the head
-        val oldHeadX = x.toInt()
-        val oldHeadY = y.toInt()
+        val oldPoint: Point = Point(x.toInt(), y.toInt())
 
         // Move the head of the snek
         when(direction) {
@@ -168,16 +167,20 @@ class Snek(var x: Float, var y: Float) {
 
         // Move the butts
         // Each cell will move to the spot occupied by the cell ahead of it
-        for(i in 0.rangeTo(cells.size - 1)) {
+        // Represents the old position of the point in the previous loop
+        var previous = cells[0]
+        for(i in 0..(cells.size - 1)) {
 
-            if(i == 0) {
-                // If it's the first cell, move it to where the head used to be
-                cells[i].x = oldHeadX
-                cells[i].y = oldHeadY
-            } else {
-                cells[i].x = cells[i - 1].x
-                cells[i].y = cells[i - 1].y
+            // The position of the current cell before we move it
+            val currentSavedPosition = cells[i]
+
+            if(i == 0)
+                cells[i] = oldPoint
+            else if(currentSavedPosition != previous) {
+                cells[i] = previous
             }
+
+            previous = currentSavedPosition
         }
     }
 }
