@@ -33,7 +33,7 @@ class SnekGame : ApplicationAdapter() {
     lateinit var shapeRenderer: ShapeRenderer
 
     /** How much time to wait between movements for snek, 1 = 1 second */
-    var game_speed = 0.15
+    var game_speed = 0.10
 
     /** The current active food */
     var food = createRandomFood()
@@ -72,15 +72,6 @@ class SnekGame : ApplicationAdapter() {
         // Drawring
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
-        // Food
-        shapeRenderer.setColor(0f, 1f, 0f, 1f)
-        shapeRenderer.rect(
-                food.x * BLOCK_SIZE,
-                food.y * BLOCK_SIZE,
-                BLOCK_SIZE,
-                BLOCK_SIZE)
-
-
         // Draw head of snek
         shapeRenderer.setColor(1f, 0f, 0f, 1f)
         shapeRenderer.rect(
@@ -98,6 +89,14 @@ class SnekGame : ApplicationAdapter() {
                     BLOCK_SIZE,
                     BLOCK_SIZE)
         }
+
+        // Food
+        shapeRenderer.setColor(0f, 1f, 0f, 1f)
+        shapeRenderer.rect(
+                food.x * BLOCK_SIZE,
+                food.y * BLOCK_SIZE,
+                BLOCK_SIZE,
+                BLOCK_SIZE)
 
         shapeRenderer.end()
     }
